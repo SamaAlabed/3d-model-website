@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload 3D Model</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* style.css */
+
+#message {
+    /* Positioning */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centers the element perfectly */
+    z-index: 1000; /* Ensure it's on top of everything */
+
+    /* Appearance */
+    padding: 20px 40px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    min-width: 300px;
+    transition: opacity 0.3s ease-in-out; /* Smooth fade effect */
+}
+
+/* Styles for success and error states */
+.message-box.success {
+    background-color: #e6ffed; /* Light green background */
+    color: #1e8449; /* Dark green text */
+    border: 1px solid #1e8449;
+}
+
+.message-box.error {
+    background-color: #ffe6e6; /* Light red background */
+    color: #c0392b; /* Dark red text */
+    border: 1px solid #c0392b;
+}
+
+/* Initially hide the message div when empty */
+#message:empty {
+    display: none;
+}
+
+  </style>
+</head>
+<body>
+  <div class="nav-button">
+    <a href="index.html" class="btn">Browse Models</a>
+  </div>
+  
+  <div class="container">
+    <h1>Upload Your 3D Model</h1>
+    
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="text" name="name" placeholder="Model Name" required>
+      <input type="text" name="author" placeholder="Author Name" required>
+      <textarea name="description" placeholder="Description"></textarea>
+      <!-- FIX: Changed name="model" to name="modelFile" to match server multer config -->
+      <input type="file" name="modelFile" accept=".glb,.gltf,.fbx" required>
+      <button type="submit" class="btn">Upload</button>
+    </form>
+    <!-- The message div remains, but its styling is handled by CSS -->
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("uploadForm" );
+    const messageDiv = document.getElementById("message");
+    // Get the button element
+    const uploadButton = form.querySelector("button[type='submit']"); 
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+
+      // --- FIX 1: Loading State ---
+      uploadButton.disabled = true;
+      uploadButton.textContent = "Uploading...";
+      messageDiv.textContent = ""; // Clear previous message
+      messageDiv.className = ""; // Clear previous class
+
+      try {
+        // FIX: Changed fetch URL to the correct relative API endpoint /api/upload
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          messageDiv.textContent = data.message || "Model uploaded successfully!";
+          messageDiv.className = "message-box success"; // Use class for styling
+          form.reset();
+        } else {
+          const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
+          messageDiv.textContent = `Upload failed: ${errorData.message}`;
+          messageDiv.className = "message-box error"; // Use class for styling
+        }
+      } catch (error) {
+        messageDiv.textContent = "Error uploading model. Check console for details.";
+        messageDiv.className = "message-box error";
+        console.error("Fetch error:", error);
+      } finally {
+        // --- FIX 1 & 3: Reset Button and Shorter Duration ---
+        // We reset the button text/state *after* the upload attempt is complete
+        uploadButton.disabled = false;
+        uploadButton.textContent = "Upload";
+        
+        // Set message to disappear after 3 seconds
+        setTimeout(() => {
+          messageDiv.textContent = "";
+          messageDiv.className = ""; // Clear the class to hide it
+        }, 3000); // 3 seconds
+      }
+    });
+  </script>
+</body>
+</html>
