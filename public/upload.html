@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* style.css */
+  
 
 #message {
     /* Positioning */
@@ -91,12 +91,14 @@
           body: formData
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          messageDiv.textContent = data.message || "Model uploaded successfully!";
-          messageDiv.className = "message-box success"; // Use class for styling
-          form.reset();
-        } else {
+        if (response.ok)
+         {
+            const data = await response.json();
+           messageDiv.innerHTML = `${data.message || "Model uploaded successfully!"} <br>
+         <a href="/models/${data.modelUrl}" target="_blank">View / Download Model</a>`;
+            messageDiv.className = "message-box success";
+             form.reset();
+          }else {
           const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
           messageDiv.textContent = `Upload failed: ${errorData.message}`;
           messageDiv.className = "message-box error"; // Use class for styling
@@ -106,8 +108,7 @@
         messageDiv.className = "message-box error";
         console.error("Fetch error:", error);
       } finally {
-        // --- FIX 1 & 3: Reset Button and Shorter Duration ---
-        // We reset the button text/state *after* the upload attempt is complete
+        
         uploadButton.disabled = false;
         uploadButton.textContent = "Upload";
         
@@ -115,7 +116,7 @@
         setTimeout(() => {
           messageDiv.textContent = "";
           messageDiv.className = ""; // Clear the class to hide it
-        }, 3000); // 3 seconds
+        }, 1500); // 3 seconds
       }
     });
   </script>
