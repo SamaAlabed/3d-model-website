@@ -1,4 +1,5 @@
-// server.js (No Cloudinary)
+
+// server.js
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
@@ -6,6 +7,7 @@ import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import Model3D from './models/Model3D.js';
 
 // Load environment variables
 dotenv.config();
@@ -18,12 +20,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ----------------------------------------------------------------
-// 1. LOCAL STORAGE CONFIGURATION (Multer)
+// 1. MONGOOSE MODEL
+// ----------------------------------------------------------------
+const modelSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  author: { type: String },
+  description: { type: String },
+  filePath: { type: String, required: true }
+}, { timestamps: true });
+
+const Model = mongoose.model('Model', modelSchema);
+
+// ----------------------------------------------------------------
+// 2. LOCAL STORAGE CONFIGURATION (Multer)
 // ----------------------------------------------------------------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Files will be saved in the "uploads" folder
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, path.join(__dirname, 'uploads'));
@@ -36,7 +49,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // ----------------------------------------------------------------
-// 2. UPLOAD ROUTE
+// 3. UPLOAD ROUTE
 // ----------------------------------------------------------------
 app.post('/api/upload', upload.single('modelFile'), async (req, res) => {
   try {
@@ -44,13 +57,16 @@ app.post('/api/upload', upload.single('modelFile'), async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded.' });
     }
 
-    // Local file path (for now)
     const fileUrl = `/uploads/${req.file.filename}`;
-    console.log(`Model uploaded locally: ${fileUrl}`);
 
-    // TODO: Save the model info to MongoDB if needed
-    // const newModel = new Model({ name: req.body.name, url: fileUrl });
-    // await newModel.save();
+    // Save to MongoDB
+    const newModel = new Model({
+      name: req.body.name,
+      author: req.body.author,
+      description: req.body.description,
+      filePath: fileUrl
+    });
+    await newModel.save();
 
     res.status(200).json({
       message: 'Model uploaded successfully.',
@@ -63,7 +79,20 @@ app.post('/api/upload', upload.single('modelFile'), async (req, res) => {
 });
 
 // ----------------------------------------------------------------
-// 3. SERVE STATIC FILES
+// 4. GET MODELS
+// ----------------------------------------------------------------
+app.get('/models', async (req, res) => {
+  try {
+    const models = await Model.find();
+    res.json(models);
+  } catch (err) {
+    console.error('Error fetching models:', err);
+    res.status(500).json({ message: 'Failed to fetch models.' });
+  }
+});
+
+// ----------------------------------------------------------------
+// 5. SERVE STATIC FILES
 // ----------------------------------------------------------------
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -73,7 +102,7 @@ app.get('/', (req, res) => {
 });
 
 // ----------------------------------------------------------------
-// 4. DATABASE CONNECTION + SERVER START
+// 6. DATABASE CONNECTION + SERVER START
 // ----------------------------------------------------------------
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
