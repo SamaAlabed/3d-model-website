@@ -7,10 +7,11 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #1a1a2e, #16213e);  /* Dark gradient for a modern feel */
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
   color: #e0e0e0;
   line-height: 1.6;
   min-height: 100vh;
+  overflow-x: hidden; /* Prevent horizontal scroll on mobile */
 }
 
 .container {
@@ -22,24 +23,25 @@ body {
 h1 {
   text-align: center;
   margin-bottom: 30px;
-  color: #00d4ff;  /* Accent color */
+  color: #00d4ff;
   font-size: 2.5em;
   text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
 }
 
 .btn {
   display: inline-block;
-  padding: 10px 20px;  /* Slightly reduced for less bulk */
+  padding: 10px 20px;
   background: linear-gradient(45deg, #007bff, #00d4ff);
   color: white;
   text-decoration: none;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;  /* Smaller font for balance */
+  font-size: 14px;
   font-weight: 500;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  touch-action: manipulation; /* Better touch on mobile */
 }
 
 .btn:hover {
@@ -72,10 +74,11 @@ form {
 }
 
 form textarea {
-  resize: vertical;   /* allow only up/down resize */
-  max-width: 100%;    /* keep it inside the form */
-  display: block;     /* ensures it doesn’t overlap with inline items */
-  overflow: auto;     /* show scrollbar if text exceeds height */
+  resize: vertical;
+  max-width: 100%;
+  display: block;
+  overflow: auto;
+  min-height: 120px; /* Better mobile experience */
 }
 
 form input,
@@ -100,11 +103,11 @@ form button {
   margin-top: 10px;
 }
 
-/* Model Cards (for browse page) - Further improved spacing and balance */
+/* Model Cards (for browse page) */
 #modelsContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));  /* Slightly wider for better balance */
-  gap: 25px;  /* Increased gap for more breathing room */
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 25px;
   margin-top: 20px;
 }
 
@@ -112,56 +115,56 @@ form button {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border-radius: 12px;
-  padding: 30px;  /* More padding for airier feel */
+  padding: 30px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
-  flex-direction: column;  /* Stack content vertically */
-  justify-content: space-between;  /* Push buttons to bottom for even alignment */
-  min-height: 320px;  /* Taller for better proportions */
-  border: 1px solid rgba(0, 212, 255, 0.2);  /* Subtle accent border */
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 320px;
+  border: 1px solid rgba(0, 212, 255, 0.2);
 }
 
 .model-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-  border-color: rgba(0, 212, 255, 0.4);  /* Brighter border on hover */
+  border-color: rgba(0, 212, 255, 0.4);
 }
 
 .model-card h3 {
   color: #00d4ff;
-  margin-bottom: 15px;  /* More space below title */
-  font-size: 1.3em;  /* Slightly larger for emphasis */
+  margin-bottom: 15px;
+  font-size: 1.3em;
 }
 
 .model-card p {
-  margin-bottom: 15px;  /* More space between paragraphs */
+  margin-bottom: 15px;
   color: #ccc;
-  flex-grow: 1;  /* Allow description to expand and fill space */
+  flex-grow: 1;
 }
 
-/* Button and Dropdown Group - More spacing for better feel */
+/* Button and Dropdown Group */
 .model-card .card-actions {
   display: flex;
-  flex-direction: column; /* vertical layout */
-  gap: 12px; /* spacing between elements */
-  align-items: stretch; /* make all buttons same width */
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
   margin-top: 15px;
 }
 
 .model-card .btn {
-  flex: 1;  /* Buttons take equal space */
-  min-width: 120px;  /* Minimum width to prevent squishing */
-  margin: 0;  /* Remove old margin-right */
+  flex: 1;
+  min-width: 120px;
+  margin: 0;
 }
 
 .app-select {
-  flex: 1;  /* Dropdown takes equal space */
-  min-width: 140px;  /* Ensure it's not too narrow */
-  padding: 10px;  /* Match button padding */
+  flex: 1;
+  min-width: 140px;
+  padding: 10px;
   border-radius: 6px;
   border: 1px solid #444;
-  background: rgba(255, 255, 255, 0.1);  /* Match card background */
+  background: rgba(255, 255, 255, 0.1);
   color: #e0e0e0;
   font-size: 14px;
   transition: border-color 0.3s ease;
@@ -169,11 +172,11 @@ form button {
 
 .app-select:focus {
   outline: none;
-  border-color: #00d4ff;  /* Accent on focus */
+  border-color: #00d4ff;
 }
 
 .app-select option {
-  background: #16213e;  /* Dark background for dropdown options */
+  background: #16213e;
   color: #e0e0e0;
 }
 
@@ -222,32 +225,6 @@ form button {
   background: #ff3742;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  h1 {
-    font-size: 2em;
-  }
-  .container {
-    padding: 10px;
-  }
-  #modelsContainer {
-    grid-template-columns: 1fr;  /* Single column on mobile */
-    gap: 20px;
-  }
-  #viewerContainer {
-    width: 95%;
-    height: 95%;
-  }
-  .model-card .card-actions {
-    flex-direction: column;  /* Stack vertically on small screens */
-    gap: 15px;  /* More gap on mobile for separation */
-  }
-  .model-card .btn,
-  .app-select {
-    width: 100%;  /* Full width on mobile */
-  }
-}
-
 /* Additional viewer-specific styles */
 #uiContainer {
   position: absolute;
@@ -260,11 +237,13 @@ form button {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  pointer-events: none;  /* Allow clicks through to canvas */
+  pointer-events: none;
 }
+
 #uiContainer > * {
   pointer-events: auto;
 }
+
 #info {
   background: rgba(0, 0, 0, 0.8);
   padding: 15px;
@@ -274,22 +253,26 @@ form button {
   opacity: 1;
   transition: opacity 0.5s;
 }
+
 #info.hidden {
   opacity: 0;
 }
+
 #controls {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+
 #modelInfo {
   background: rgba(255, 255, 255, 0.1);
   padding: 10px;
   border-radius: 8px;
   margin-top: 10px;
-  display: none;  /* Shown after load */
+  display: none;
 }
+
 #loadingSpinner {
   position: absolute;
   top: 50%;
@@ -303,10 +286,12 @@ form button {
   animation: spin 1s linear infinite;
   z-index: 50;
 }
+
 @keyframes spin {
   0% { transform: translate(-50%, -50%) rotate(0deg); }
   100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
+
 #errorMsg {
   position: absolute;
   top: 50%;
@@ -319,45 +304,6 @@ form button {
   text-align: center;
   z-index: 200;
   display: none;
-}
-
-/* Responsive styles for smaller screens */
-@media (max-width: 768px) {
-  #uiContainer {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 10px;
-  }
-  #controls {
-    justify-content: center;
-    margin-top: 10px;
-    gap: 8px;
-  }
-  #info {
-    max-width: 100%;
-    font-size: 12px;
-    padding: 10px;
-  }
-  #modelInfo {
-    font-size: 12px;
-    padding: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  #controls {
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-  }
-  #info {
-    font-size: 11px;
-    padding: 8px;
-  }
-  #modelInfo {
-    font-size: 11px;
-    padding: 6px;
-  }
 }
 
 /* Unity-specific styles */
@@ -452,8 +398,104 @@ form button {
   margin-top: 15px;
 }
 
-/* Responsive adjustments for Unity buttons */
+/* ========== RESPONSIVE BREAKPOINTS ========== */
+
+/* Tablets and smaller desktops */
+@media (max-width: 1024px) {
+  .container {
+    padding: 15px;
+  }
+  
+  h1 {
+    font-size: 2.2em;
+    margin-bottom: 25px;
+  }
+  
+  #modelsContainer {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .model-card {
+    padding: 25px;
+    min-height: 300px;
+  }
+}
+
+/* Tablets and large phones */
 @media (max-width: 768px) {
+  h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+  }
+  
+  .container {
+    padding: 12px;
+  }
+  
+  #modelsContainer {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  
+  #viewerContainer {
+    width: 95%;
+    height: 95%;
+  }
+  
+  .model-card .card-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .model-card .btn,
+  .app-select {
+    width: 100%;
+  }
+  
+  /* Form adjustments */
+  form {
+    padding: 20px;
+    margin: 0 10px;
+  }
+  
+  form input,
+  form textarea {
+    padding: 10px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  /* Navigation button */
+  .nav-button {
+    top: 15px;
+    right: 15px;
+  }
+  
+  /* Viewer UI adjustments */
+  #uiContainer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px;
+  }
+  
+  #controls {
+    justify-content: center;
+    margin-top: 10px;
+    gap: 8px;
+  }
+  
+  #info {
+    max-width: 100%;
+    font-size: 12px;
+    padding: 10px;
+  }
+  
+  #modelInfo {
+    font-size: 12px;
+    padding: 8px;
+  }
+  
+  /* Unity links */
   .unity-links {
     flex-direction: column;
     gap: 10px;
@@ -461,5 +503,165 @@ form button {
   
   .card-actions {
     gap: 8px;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+  }
+  
+  .container {
+    padding: 10px;
+  }
+  
+  #modelsContainer {
+    gap: 15px;
+  }
+  
+  .model-card {
+    padding: 20px;
+    min-height: 280px;
+  }
+  
+  .model-card h3 {
+    font-size: 1.2em;
+  }
+  
+  .model-card p {
+    font-size: 0.9em;
+  }
+  
+  /* Controls adjustments */
+  #controls {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  #info {
+    font-size: 11px;
+    padding: 8px;
+  }
+  
+  #modelInfo {
+    font-size: 11px;
+    padding: 6px;
+  }
+  
+  /* Button sizing */
+  .btn {
+    padding: 12px 16px; /* Larger touch targets */
+    font-size: 16px; /* Better readability */
+  }
+  
+  /* Form elements */
+  form {
+    padding: 15px;
+  }
+  
+  form input,
+  form textarea {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  
+  /* Loading spinner */
+  #loadingSpinner {
+    width: 40px;
+    height: 40px;
+    border-width: 4px;
+  }
+}
+
+/* Small phones */
+@media (max-width: 360px) {
+  h1 {
+    font-size: 1.6em;
+  }
+  
+  .model-card {
+    padding: 15px;
+    min-height: 260px;
+  }
+  
+  .btn {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .container {
+    padding: 8px;
+  }
+}
+
+/* Landscape orientation for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .container {
+    padding: 10px;
+  }
+  
+  h1 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+  }
+  
+  #modelsContainer {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+  }
+  
+  .model-card {
+    min-height: 200px;
+    padding: 15px;
+  }
+  
+  /* Viewer adjustments for landscape */
+  #viewerContainer {
+    height: 95%;
+    width: 95%;
+  }
+}
+
+/* High-resolution displays */
+@media (min-resolution: 192dpi) {
+  .btn {
+    border-width: 0.5px; /* Crisper borders */
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .btn:hover,
+  .model-card:hover {
+    transform: none;
+  }
+}
+
+/* Dark mode support (already dark, but for consistency) */
+@media (prefers-color-scheme: dark) {
+  /* Your existing dark theme is perfect */
+}
+
+/* Print styles */
+@media print {
+  .btn,
+  .nav-button,
+  #controls,
+  #uiContainer {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
   }
 }
