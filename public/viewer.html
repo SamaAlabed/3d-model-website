@@ -1,287 +1,30 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-        <title>VR Model Viewer</title>
-        <link rel="stylesheet" href="style.css">
-        <style>
-            /* Additional viewer-specific styles */
-            #uiContainer {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                padding: 20px;
-                box-sizing: border-box;
-                z-index: 100;
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                pointer-events: none; /* Allow clicks through to canvas */
-            }
-            #uiContainer > * {
-                pointer-events: auto;
-            }
-            #info {
-                background: rgba(0, 0, 0, 0.8);
-                padding: 15px;
-                border-radius: 8px;
-                font-size: 14px;
-                max-width: 300px;
-                opacity: 1;
-                transition: opacity 0.5s;
-            }
-            #info.hidden {
-                opacity: 0;
-            }
-            #controls {
-                display: flex;
-                gap: 10px;
-                flex-wrap: wrap;
-            }
-            #modelInfo {
-                background: rgba(255, 255, 255, 0.1);
-                padding: 10px;
-                border-radius: 8px;
-                margin-top: 10px;
-                display: none; /* Shown after load */
-            }
-            #loadingSpinner {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                width: 50px;
-                height: 50px;
-                border: 5px solid #00d4ff;
-                border-top: 5px solid transparent;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-                z-index: 50;
-            }
-            @keyframes spin {
-                0% {
-                    transform: translate(-50%, -50%) rotate(0deg);
-                }
-                100% {
-                    transform: translate(-50%, -50%) rotate(360deg);
-                }
-            }
-            #errorMsg {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(255, 0, 0, 0.8);
-                color: white;
-                padding: 20px;
-                border-radius: 8px;
-                text-align: center;
-                z-index: 200;
-                display: none;
-            }
-        </style>
-    </head>
-    <body>
-        <div id="loadingSpinner">
-        </div>
-        <div id="errorMsg">
-            <p>
-                Error loading model.
-                <button onclick="location.reload()">Retry</button>
-            </p>
-        </div>
-        <div id="uiContainer">
-            <div>
-                <div id="info">Loading model... Use the buttons to switch modes.</div>
-                <div id="modelInfo">
-                    <h4 id="modelName">Model Name</h4>
-                    <p id="modelDetails">Details will appear here.</p>
-                </div>
-            </div>
-            <div id="controls">
-                <button id="webViewBtn" class="btn active" title="Interact with mouse">Web View</button>
-                <button id="vrViewBtn" class="btn" title="Requires VR headset">VR Mode</button>
-                <button id="resetViewBtn" class="btn" title="Reset camera">Reset View</button>
-                <button id="backBtn" class="btn" onclick="window.location.href='index.html'">Back to Gallery</button>
-            </div>
-        </div>
-  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://unpkg.com/three@0.128.0/examples/js/webxr/VRButton.js"></script>
-
-<script>
-(function() {
-    let model; // Holds current loaded model
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a2e);
-
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 1.6, 3);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.xr.enabled = true;
-    document.body.appendChild(renderer.domElement);
-
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-    scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 5, 5);
-    directionalLight.castShadow = true;
-    scene.add(directionalLight);
-    const pointLight = new THREE.PointLight(0x00d4ff, 0.5, 100);
-    pointLight.position.set(-5, 5, -5);
-    scene.add(pointLight);
-
-    // Controls
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-
-    // VR Button
-    let vrButton;
-    if (typeof VRButton !== 'undefined') {
-        vrButton = VRButton.createButton(renderer);
-        vrButton.id = 'vrButton';
-        vrButton.style.display = 'none';
-        document.body.appendChild(vrButton);
-    } else {
-        console.warn('VRButton not loaded. VR mode disabled.');
-        document.getElementById('vrViewBtn').disabled = true;
-        document.getElementById('vrViewBtn').title = 'VR not supported';
-    }
-
-    // Load model
-    function loadModel(modelPath) {
-        const loader = new THREE.GLTFLoader();
-
-        // Remove old model if exists
-        if (model) scene.remove(model);
-
-        document.getElementById('loadingSpinner').style.display = 'block';
-        document.getElementById('errorMsg').style.display = 'none';
-        document.getElementById('info').textContent = 'Loading model...';
-        document.getElementById('info').classList.remove('hidden');
-
-        loader.load(
-            modelPath,
-            (gltf) => {
-                model = gltf.scene;
-                scene.add(model);
-
-                // Enable shadows
-                model.traverse((child) => {
-                    if (child.isMesh) {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                    }
-                });
-
-                // Center and scale model
-                const box = new THREE.Box3().setFromObject(model);
-                const center = box.getCenter(new THREE.Vector3());
-                model.position.sub(center);
-                const size = box.getSize(new THREE.Vector3());
-                const maxDim = Math.max(size.x, size.y, size.z);
-                const scale = 2 / maxDim;
-                model.scale.set(scale, scale, scale);
-
-                document.getElementById('loadingSpinner').style.display = 'none';
-                document.getElementById('info').textContent = 'Model loaded! Explore in Web or VR view.';
-                setTimeout(() => document.getElementById('info').classList.add('hidden'), 4000);
-            },
-            (progress) => {
-                if (progress.total)
-                    document.getElementById('info').textContent = `Loading... ${(progress.loaded / progress.total * 100).toFixed(2)}%`;
-            },
-            (error) => {
-                console.error('Error loading model:', error, error.target ? error.target.response : '');
-                document.getElementById('loadingSpinner').style.display = 'none';
-                document.getElementById('errorMsg').style.display = 'block';
-            }
-        );
-    }
-
-    // Get model path from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const modelPath = urlParams.get('model');
-    if (modelPath) loadModel(modelPath);
-    else {
-        document.getElementById('info').textContent = 'No model specified.';
-        document.getElementById('loadingSpinner').style.display = 'none';
-    }
-
-    // UI buttons
-    document.getElementById('webViewBtn').addEventListener('click', () => {
-        controls.enabled = true;
-        if (vrButton) vrButton.style.display = 'none';
-        renderer.xr.enabled = false;
-        document.getElementById('info').textContent = 'Web View: Use mouse to rotate/zoom.';
-        document.getElementById('info').classList.remove('hidden');
-        setTimeout(() => document.getElementById('info').classList.add('hidden'), 3000);
-    });
-
-    document.getElementById('vrViewBtn').addEventListener('click', () => {
-        if (!vrButton) {
-            alert('VR not available.');
-            return;
-        }
-        controls.enabled = false;
-        vrButton.style.display = 'block';
-        renderer.xr.enabled = true;
-        document.getElementById('info').textContent = 'VR Mode: Click VR button to enter.';
-        document.getElementById('info').classList.remove('hidden');
-        setTimeout(() => document.getElementById('info').classList.add('hidden'), 3000);
-    });
-
-    document.getElementById('resetViewBtn').addEventListener('click', () => {
-        camera.position.set(0, 1.6, 3);
-        controls.reset();
-        document.getElementById('info').textContent = 'View reset!';
-        document.getElementById('info').classList.remove('hidden');
-        setTimeout(() => document.getElementById('info').classList.add('hidden'), 2000);
-    });
-
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    function animate() {
-        renderer.setAnimationLoop(() => {
-            if (controls.enabled) controls.update();
-            renderer.render(scene, camera);
-        });
-    }
-    animate();
-})();
-</script>
-
-    </body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <title>3D Model Viewer</title>
-    <link rel="stylesheet" href="style.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
             font-family: 'Poppins', sans-serif;
+            background-color: #1e1e1e;
+            touch-action: pan-x pan-y;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
         }
         
         #uiContainer {
@@ -289,11 +32,11 @@
             top: 0;
             left: 0;
             width: 100%;
-            padding: 20px;
+            padding: 10px;
             box-sizing: border-box;
             z-index: 100;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: flex-start;
             pointer-events: none;
         }
@@ -304,17 +47,43 @@
         
         #info {
             background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
+            padding: 10px 15px;
             border-radius: 8px;
             font-size: 14px;
-            max-width: 300px;
+            max-width: 100%;
             color: white;
+            margin-bottom: 10px;
+            width: 100%;
         }
         
         #controls {
             display: flex;
-            gap: 10px;
             flex-wrap: wrap;
+            gap: 8px;
+            width: 100%;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            background: rgba(0, 212, 255, 0.8);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:hover {
+            background: rgba(0, 212, 255, 1);
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
         }
         
         #loadingSpinner {
@@ -341,12 +110,80 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(255, 0, 0, 0.8);
+            background: rgba(255, 0, 0, 0.9);
             color: white;
             padding: 20px;
             border-radius: 8px;
             text-align: center;
             z-index: 200;
+            width: 80%;
+            max-width: 400px;
+        }
+        
+        #errorMsg .btn {
+            margin: 5px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            #uiContainer {
+                padding: 8px;
+            }
+            
+            #info {
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+            
+            .btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            
+            #controls {
+                gap: 6px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #uiContainer {
+                padding: 5px;
+            }
+            
+            #info {
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+            
+            .btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            
+            #controls {
+                gap: 4px;
+            }
+        }
+        
+        /* Landscape orientation adjustments */
+        @media (max-height: 500px) and (orientation: landscape) {
+            #uiContainer {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            
+            #info {
+                width: auto;
+                max-width: 60%;
+                margin-bottom: 0;
+                margin-right: 10px;
+            }
+            
+            #controls {
+                width: auto;
+                justify-content: flex-end;
+            }
         }
     </style>
 </head>
@@ -438,6 +275,13 @@
         controls.dampingFactor = 0.05;
         controls.minDistance = 1;
         controls.maxDistance = 50;
+        
+        // Improve mobile touch controls
+        controls.enablePan = true;
+        controls.touches = {
+            ONE: THREE.TOUCH.ROTATE,
+            TWO: THREE.TOUCH.DOLLY_PAN
+        };
 
         // Load model
         function loadModel() {
@@ -520,11 +364,13 @@
         });
 
         // Handle window resize with improved performance
-        window.addEventListener('resize', () => {
+        function handleResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        }
+
+        window.addEventListener('resize', handleResize);
 
         // Animation loop
         function animate() {
