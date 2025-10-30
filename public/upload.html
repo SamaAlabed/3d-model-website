@@ -16,6 +16,7 @@
       min-height: 100vh;
       margin: 0;
       padding: 0;
+      scroll-behavior: smooth; /* Enable smooth scrolling for the whole page */
     }
 
     .container {
@@ -187,18 +188,21 @@
       max-width: 500px;
       transition: all 0.3s ease-in-out;
       opacity: 1;
+      scroll-margin-top: 20px; /* Space when scrolling to this element */
     }
 
     .message-box.success {
       background-color: rgba(46, 204, 113, 0.2);
       color: #2ecc71;
       border: 1px solid #2ecc71;
+      animation: pulseSuccess 2s ease-in-out;
     }
 
     .message-box.error {
       background-color: rgba(231, 76, 60, 0.2);
       color: #e74c3c;
       border: 1px solid #e74c3c;
+      animation: pulseError 2s ease-in-out;
     }
 
     #message:empty {
@@ -263,6 +267,7 @@
         margin: 15px 10px;
         padding: 15px;
         font-size: 0.95em;
+        scroll-margin-top: 15px;
       }
     }
 
@@ -313,6 +318,7 @@
         padding: 12px;
         font-size: 0.9em;
         margin: 15px 5px;
+        scroll-margin-top: 10px;
       }
     }
 
@@ -368,6 +374,19 @@
       animation: pulse 1.5s ease-in-out infinite;
     }
 
+    /* Success and Error message animations */
+    @keyframes pulseSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes pulseError {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
     /* File type validation styles */
     .file-validation {
       font-size: 0.8em;
@@ -378,6 +397,11 @@
 
     .file-validation.error {
       color: #e74c3c;
+    }
+
+    /* Smooth scroll behavior */
+    html {
+      scroll-behavior: smooth;
     }
   </style>
 </head>
@@ -474,6 +498,28 @@
       }
     });
 
+    // Function to scroll to message smoothly
+    function scrollToMessage() {
+      if (messageDiv.textContent.trim() !== '') {
+        // Small delay to ensure the message is rendered
+        setTimeout(() => {
+          messageDiv.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+        }, 100);
+      }
+    }
+
+    // Function to scroll to top of page smoothly
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -484,8 +530,12 @@
       if (file && file.size > 50 * 1024 * 1024) {
         messageDiv.textContent = "File size too large. Please upload files smaller than 50MB.";
         messageDiv.className = "message-box error";
+        scrollToMessage();
         return;
       }
+
+      // Scroll to top to show loading state
+      scrollToTop();
 
       // Loading State
       uploadButton.disabled = true;
@@ -513,6 +563,9 @@
         clearInterval(progressInterval);
         progressBar.style.width = '100%';
 
+        // Small delay to show 100% progress
+        await new Promise(resolve => setTimeout(resolve, 300));
+
         if (response.ok) {
           const data = await response.json();
           messageDiv.innerHTML = `✅ ${data.message || "Model uploaded successfully!"}`;
@@ -520,15 +573,24 @@
           form.reset();
           fileName.textContent = 'No file chosen';
           fileInputWrapper.classList.remove('has-file');
+          
+          // Scroll to success message
+          scrollToMessage();
         } else {
           const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
           messageDiv.textContent = `❌ Upload failed: ${errorData.message}`;
           messageDiv.className = "message-box error";
+          
+          // Scroll to error message
+          scrollToMessage();
         }
       } catch (error) {
         messageDiv.textContent = "❌ Error uploading model. Check your connection and try again.";
         messageDiv.className = "message-box error";
         console.error("Upload error:", error);
+        
+        // Scroll to error message
+        scrollToMessage();
       } finally {
         uploadButton.disabled = false;
         uploadButton.textContent = "Upload Model";
@@ -556,6 +618,11 @@
 
     // Prevent zoom on input focus for mobile
     document.addEventListener('touchstart', function() {}, {passive: true});
+
+    // Add click handler for message to allow manual scrolling if needed
+    messageDiv.addEventListener('click', function() {
+      this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   </script>
 </body>
 </html>

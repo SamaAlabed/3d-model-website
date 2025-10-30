@@ -45,11 +45,9 @@ async function loadModels() {
         <!-- Actions container -->
         <div class="card-actions">
           <button class="btn view-btn" onclick="viewModel('${this.escapeHtml(fullPath)}')">
-            <span class="btn-icon">👁️</span>
             <span class="btn-text">View in 3D</span>
           </button>
           <button class="btn download-btn" onclick="downloadModel('${this.escapeHtml(fullPath)}', '${this.escapeHtml(model.name)}')">
-            <span class="btn-icon">📥</span>
             <span class="btn-text">Download</span>
           </button>
         </div>
