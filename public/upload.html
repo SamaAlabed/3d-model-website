@@ -6,45 +6,50 @@
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-  
+    #message {
+      /* Change from fixed positioning to normal flow */
+      margin: 20px auto;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      min-width: 300px;
+      max-width: 500px;
+      transition: opacity 0.3s ease-in-out;
+      opacity: 1;
+    }
 
-#message {
-    /* Positioning */
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); /* Centers the element perfectly */
-    z-index: 1000; /* Ensure it's on top of everything */
+    /* Styles for success and error states */
+    .message-box.success {
+      background-color: #e6ffed; /* Light green background */
+      color: #1e8449; /* Dark green text */
+      border: 1px solid #1e8449;
+    }
 
-    /* Appearance */
-    padding: 20px 40px;
-    border-radius: 8px;
-    font-size: 1.1em;
-    font-weight: 600;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    min-width: 300px;
-    transition: opacity 0.3s ease-in-out; /* Smooth fade effect */
-}
+    .message-box.error {
+      background-color: #ffe6e6; /* Light red background */
+      color: #c0392b; /* Dark red text */
+      border: 1px solid #c0392b;
+    }
 
-/* Styles for success and error states */
-.message-box.success {
-    background-color: #e6ffed; /* Light green background */
-    color: #1e8449; /* Dark green text */
-    border: 1px solid #1e8449;
-}
+    /* Initially hide the message div when empty */
+    #message:empty {
+      display: none;
+    }
 
-.message-box.error {
-    background-color: #ffe6e6; /* Light red background */
-    color: #c0392b; /* Dark red text */
-    border: 1px solid #c0392b;
-}
+    /* Ensure the form container has proper spacing */
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-/* Initially hide the message div when empty */
-#message:empty {
-    display: none;
-}
-
+    form {
+      width: 100%;
+      max-width: 500px;
+    }
   </style>
 </head>
 <body>
@@ -59,18 +64,17 @@
       <input type="text" name="name" placeholder="Model Name" required>
       <input type="text" name="author" placeholder="Author Name" required>
       <textarea name="description" placeholder="Description"></textarea>
-      <!-- FIX: Changed name="model" to name="modelFile" to match server multer config -->
       <input type="file" name="modelFile" accept=".glb,.gltf,.fbx" required>
       <button type="submit" class="btn">Upload</button>
     </form>
-    <!-- The message div remains, but its styling is handled by CSS -->
+    
+    <!-- Message will now appear below the form -->
     <div id="message"></div>
   </div>
 
   <script>
-    const form = document.getElementById("uploadForm" );
+    const form = document.getElementById("uploadForm");
     const messageDiv = document.getElementById("message");
-    // Get the button element
     const uploadButton = form.querySelector("button[type='submit']"); 
 
     form.addEventListener("submit", async (e) => {
@@ -78,44 +82,41 @@
 
       const formData = new FormData(form);
 
-      // --- FIX 1: Loading State ---
+      // Loading State
       uploadButton.disabled = true;
       uploadButton.textContent = "Uploading...";
       messageDiv.textContent = ""; // Clear previous message
       messageDiv.className = ""; // Clear previous class
 
       try {
-        // FIX: Changed fetch URL to the correct relative API endpoint /api/upload
         const response = await fetch("/api/upload", {
           method: "POST",
           body: formData
         });
 
-        if (response.ok)
-         {
-            const data = await response.json();
-           messageDiv.innerHTML = `${data.message || "Model uploaded successfully!"} <br>`;
-            messageDiv.className = "message-box success";
-             form.reset();
-          }else {
+        if (response.ok) {
+          const data = await response.json();
+          messageDiv.innerHTML = `${data.message || "Model uploaded successfully!"}`;
+          messageDiv.className = "message-box success";
+          form.reset();
+        } else {
           const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
           messageDiv.textContent = `Upload failed: ${errorData.message}`;
-          messageDiv.className = "message-box error"; // Use class for styling
+          messageDiv.className = "message-box error";
         }
       } catch (error) {
         messageDiv.textContent = "Error uploading model. Check console for details.";
         messageDiv.className = "message-box error";
         console.error("Fetch error:", error);
       } finally {
-        
         uploadButton.disabled = false;
         uploadButton.textContent = "Upload";
         
-        // Set message to disappear after 3 seconds
+        // Set message to disappear after 5 seconds (increased for better readability)
         setTimeout(() => {
           messageDiv.textContent = "";
-          messageDiv.className = ""; // Clear the class to hide it
-        }, 3000); // 3 seconds
+          messageDiv.className = "";
+        }, 5000);
       }
     });
   </script>
