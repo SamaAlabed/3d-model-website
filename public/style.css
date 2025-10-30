@@ -359,3 +359,107 @@ form button {
     padding: 6px;
   }
 }
+
+/* Unity-specific styles */
+.unity-btn {
+  background: linear-gradient(45deg, #007acc, #00a8ff) !important;
+}
+
+.unity-btn:hover {
+  background: linear-gradient(45deg, #005a9e, #0097e6) !important;
+}
+
+.instructions-btn {
+  background: linear-gradient(45deg, #6c757d, #8e9a9d) !important;
+}
+
+.instructions-btn:hover {
+  background: linear-gradient(45deg, #545b62, #6c757d) !important;
+}
+
+.unity-instructions {
+  background: rgba(0, 122, 204, 0.1);
+  border-left: 4px solid #007acc;
+  padding: 20px;
+  margin: 15px 0;
+  border-radius: 0 8px 8px 0;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.unity-guide h4 {
+  color: #00d4ff;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+}
+
+.step {
+  margin: 10px 0;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.step:last-child {
+  border-bottom: none;
+}
+
+.tips {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+.tips ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.tips li {
+  margin: 5px 0;
+  color: #ccc;
+}
+
+.unity-links {
+  margin-top: 15px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.unity-links a {
+  color: #00d4ff;
+  text-decoration: none;
+  padding: 8px 15px;
+  background: rgba(0, 212, 255, 0.1);
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.unity-links a:hover {
+  background: rgba(0, 212, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Enhanced card actions for better Unity visibility */
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* Responsive adjustments for Unity buttons */
+@media (max-width: 768px) {
+  .unity-links {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .card-actions {
+    gap: 8px;
+  }
+}

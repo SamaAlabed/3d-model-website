@@ -19,12 +19,18 @@
   </div>
 
   <!-- Inline Viewer Modal -->
-  <div id="inlineViewer">
-    <div id="viewerContainer">
-      <button id="closeViewer">×</button>
-      <div id="threejsCanvas"></div>
-    </div>
+  <div class="model-card">
+  <h3>Model Name</h3>
+  <p><strong>Author:</strong> Author Name</p>
+  <p>Model description</p>
+  
+  <div class="card-actions">
+    <button class="btn" onclick="viewModel('model-path')">View in VR</button>
+    <button class="btn unity-btn" onclick="downloadForUnity('model-id')">🎮 Download for Unity</button>
+    <button class="btn instructions-btn" onclick="showUnityInstructions('model-id')">ℹ️ Unity Guide</button>
   </div>
+  <div id="unity-instructions-model-id" class="unity-instructions" style="display: none;"></div>
+</div>
 
 
   <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
