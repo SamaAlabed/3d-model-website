@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -266,4 +266,236 @@
 </script>
 
     </body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <title>3D Model Viewer</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        #uiContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+        }
+        
+        #uiContainer > * {
+            pointer-events: auto;
+        }
+        
+        #info {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            max-width: 300px;
+            color: white;
+        }
+        
+        #controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        #loadingSpinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 5px solid #00d4ff;
+            border-top: 5px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 50;
+        }
+        
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        #errorMsg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 200;
+        }
+    </style>
+</head>
+<body>
+    <div id="loadingSpinner"></div>
+    
+    <div id="errorMsg" style="display: none;">
+        <p>Error loading model.</p>
+        <button onclick="location.reload()" class="btn">Retry</button>
+        <button onclick="window.location.href='index.html'" class="btn">Back to Gallery</button>
+    </div>
+
+    <div id="uiContainer">
+        <div id="info">Loading model...</div>
+        <div id="controls">
+            <button id="resetViewBtn" class="btn" title="Reset camera">Reset View</button>
+            <button id="backBtn" class="btn" onclick="window.location.href='index.html'">Back to Gallery</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // Get model path from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const modelPath = urlParams.get('model');
+        
+        if (!modelPath) {
+            document.getElementById('errorMsg').style.display = 'block';
+            document.getElementById('errorMsg').innerHTML = '<p>No model specified in URL.</p>';
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        // Initialize Three.js scene
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a2e);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.6, 3);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+
+        // Controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        // Load model
+        function loadModel() {
+            const loader = new THREE.GLTFLoader();
+            
+            console.log('Loading model from:', modelPath);
+
+            loader.load(
+                modelPath,
+                (gltf) => {
+                    console.log('Model loaded successfully');
+                    const model = gltf.scene;
+                    scene.add(model);
+
+                    // Enable shadows
+                    model.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+
+                    // Center and scale model
+                    const box = new THREE.Box3().setFromObject(model);
+                    const center = box.getCenter(new THREE.Vector3());
+                    model.position.sub(center);
+                    
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 2 / maxDim;
+                    model.scale.set(scale, scale, scale);
+
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    document.getElementById('info').textContent = 'Model loaded! Use mouse to rotate/zoom.';
+                    
+                    setTimeout(() => {
+                        document.getElementById('info').style.display = 'none';
+                    }, 3000);
+                },
+                (progress) => {
+                    const percent = progress.total ? (progress.loaded / progress.total * 100).toFixed(2) : '0';
+                    document.getElementById('info').textContent = `Loading... ${percent}%`;
+                    console.log('Loading progress:', percent + '%');
+                },
+                (error) => {
+                    console.error('Error loading model:', error);
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    document.getElementById('errorMsg').style.display = 'block';
+                    document.getElementById('errorMsg').innerHTML = `
+                        <p>Error loading model: ${error.message}</p>
+                        <p>Check console for details.</p>
+                        <button onclick="location.reload()" class="btn">Retry</button>
+                        <button onclick="window.location.href='index.html'" class="btn">Back to Gallery</button>
+                    `;
+                }
+            );
+        }
+
+        // Reset view
+        document.getElementById('resetViewBtn').addEventListener('click', () => {
+            camera.position.set(0, 1.6, 3);
+            controls.reset();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Start loading and animation
+        if (modelPath) {
+            loadModel();
+        }
+        animate();
+
+        // Add error logging
+        window.addEventListener('error', (e) => {
+            console.error('Global error in viewer:', e.error);
+        });
+    </script>
+</body>
 </html>
