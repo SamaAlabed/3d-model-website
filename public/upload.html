@@ -94,8 +94,7 @@
         if (response.ok)
          {
             const data = await response.json();
-           messageDiv.innerHTML = `${data.message || "Model uploaded successfully!"} <br>
-         <a href="/models/${data.modelUrl}" target="_blank">View / Download Model</a>`;
+           messageDiv.innerHTML = `${data.message || "Model uploaded successfully!"} <br>`;
             messageDiv.className = "message-box success";
              form.reset();
           }else {
