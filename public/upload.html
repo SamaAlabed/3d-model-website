@@ -2,53 +2,382 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Upload 3D Model</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    #message {
-      /* Change from fixed positioning to normal flow */
-      margin: 20px auto;
-      padding: 15px 30px;
+    /* Base mobile-first styles */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: #e0e0e0;
+      line-height: 1.6;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 60px 0 30px 0;
+      color: #00d4ff;
+      font-size: 2em;
+      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+      width: 100%;
+    }
+
+    /* Navigation Button */
+    .nav-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: linear-gradient(45deg, #007bff, #00d4ff);
+      color: white;
+      text-decoration: none;
+      border: none;
       border-radius: 8px;
-      font-size: 1.1em;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+      min-height: 44px; /* Minimum touch target */
+      text-align: center;
+    }
+
+    .btn:hover {
+      background: linear-gradient(45deg, #0056b3, #0099cc);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 123, 255, 0.5);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Form Styles */
+    form {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    form input,
+    form textarea,
+    form .file-input-wrapper {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #e0e0e0;
+      font-size: 16px;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    form input:focus,
+    form textarea:focus {
+      outline: none;
+      border-color: #00d4ff;
+      box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+    }
+
+    form input::placeholder,
+    form textarea::placeholder {
+      color: #aaa;
+    }
+
+    form textarea {
+      resize: vertical;
+      min-height: 100px;
+      max-height: 200px;
+    }
+
+    /* Enhanced File Input */
+    .file-input-wrapper {
+      position: relative;
+      border: 2px dashed rgba(0, 212, 255, 0.3);
+      padding: 30px 20px !important;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .file-input-wrapper:hover {
+      border-color: #00d4ff;
+      background: rgba(0, 212, 255, 0.05);
+    }
+
+    .file-input-wrapper.has-file {
+      border-color: #00d4ff;
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    .file-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .file-input-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      color: #00d4ff;
+      font-weight: 600;
+    }
+
+    .file-input-icon {
+      font-size: 2em;
+    }
+
+    .file-name {
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: #ccc;
+      word-break: break-word;
+      text-align: center;
+    }
+
+    /* Message Styles */
+    #message {
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 1em;
       font-weight: 600;
       text-align: center;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      min-width: 300px;
+      width: 100%;
       max-width: 500px;
-      transition: opacity 0.3s ease-in-out;
+      transition: all 0.3s ease-in-out;
       opacity: 1;
     }
 
-    /* Styles for success and error states */
     .message-box.success {
-      background-color: #e6ffed; /* Light green background */
-      color: #1e8449; /* Dark green text */
-      border: 1px solid #1e8449;
+      background-color: rgba(46, 204, 113, 0.2);
+      color: #2ecc71;
+      border: 1px solid #2ecc71;
     }
 
     .message-box.error {
-      background-color: #ffe6e6; /* Light red background */
-      color: #c0392b; /* Dark red text */
-      border: 1px solid #c0392b;
+      background-color: rgba(231, 76, 60, 0.2);
+      color: #e74c3c;
+      border: 1px solid #e74c3c;
     }
 
-    /* Initially hide the message div when empty */
     #message:empty {
       display: none;
     }
 
-    /* Ensure the form container has proper spacing */
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    /* Upload Progress */
+    .upload-progress {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      margin: 15px 0;
+      overflow: hidden;
+      display: none;
     }
 
-    form {
-      width: 100%;
-      max-width: 500px;
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(45deg, #007bff, #00d4ff);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    /* Mobile-First Responsive Design */
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 1.8em;
+        margin: 50px 0 25px 0;
+      }
+
+      .nav-button {
+        top: 15px;
+        right: 15px;
+      }
+
+      form {
+        padding: 20px;
+        margin: 0 10px;
+      }
+
+      form input,
+      form textarea,
+      form .file-input-wrapper {
+        padding: 12px;
+        margin-bottom: 15px;
+        font-size: 16px; /* Prevent zoom on iOS */
+      }
+
+      .btn {
+        padding: 14px 20px;
+        font-size: 16px;
+        width: 100%; /* Full width on mobile */
+      }
+
+      #message {
+        margin: 15px 10px;
+        padding: 15px;
+        font-size: 0.95em;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 1.6em;
+        margin: 40px 0 20px 0;
+      }
+
+      .nav-button {
+        top: 10px;
+        right: 10px;
+      }
+
+      .nav-button .btn {
+        padding: 10px 15px;
+        font-size: 14px;
+      }
+
+      form {
+        padding: 15px;
+      }
+
+      form input,
+      form textarea,
+      form .file-input-wrapper {
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+
+      .file-input-wrapper {
+        padding: 25px 15px !important;
+      }
+
+      .file-input-label {
+        font-size: 0.9em;
+      }
+
+      .file-input-icon {
+        font-size: 1.8em;
+      }
+
+      #message {
+        padding: 12px;
+        font-size: 0.9em;
+        margin: 15px 5px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      h1 {
+        font-size: 1.4em;
+        margin: 30px 0 15px 0;
+      }
+
+      form {
+        padding: 12px;
+      }
+
+      .btn {
+        padding: 12px 16px;
+      }
+
+      .file-input-wrapper {
+        padding: 20px 12px !important;
+      }
+    }
+
+    /* Landscape orientation for mobile */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .container {
+        padding: 10px;
+      }
+
+      h1 {
+        margin: 20px 0 15px 0;
+        font-size: 1.4em;
+      }
+
+      form {
+        max-width: 90%;
+        padding: 15px;
+      }
+
+      .nav-button {
+        top: 10px;
+        right: 10px;
+      }
+    }
+
+    /* Loading animation */
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    .loading {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    /* File type validation styles */
+    .file-validation {
+      font-size: 0.8em;
+      margin-top: -15px;
+      margin-bottom: 15px;
+      color: #00d4ff;
+    }
+
+    .file-validation.error {
+      color: #e74c3c;
     }
   </style>
 </head>
@@ -61,64 +390,172 @@
     <h1>Upload Your 3D Model</h1>
     
     <form id="uploadForm" enctype="multipart/form-data">
-      <input type="text" name="name" placeholder="Model Name" required>
-      <input type="text" name="author" placeholder="Author Name" required>
-      <textarea name="description" placeholder="Description"></textarea>
-      <input type="file" name="modelFile" accept=".glb,.gltf,.fbx" required>
-      <button type="submit" class="btn">Upload</button>
+      <input type="text" name="name" placeholder="Model Name" required aria-label="Model Name">
+      <input type="text" name="author" placeholder="Author Name" required aria-label="Author Name">
+      <textarea name="description" placeholder="Description" aria-label="Model Description"></textarea>
+      
+      <!-- Enhanced file input -->
+      <div class="file-input-wrapper" id="fileInputWrapper">
+        <input type="file" name="modelFile" accept=".glb,.gltf,.fbx" required class="file-input" id="modelFile" aria-label="3D Model File">
+        <div class="file-input-label">
+          <span class="file-input-icon">📁</span>
+          <span>Choose 3D Model File</span>
+          <small>Supported: .glb, .gltf, .fbx</small>
+        </div>
+        <div class="file-name" id="fileName">No file chosen</div>
+      </div>
+
+      <div class="upload-progress" id="uploadProgress">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      
+      <button type="submit" class="btn" id="uploadButton">Upload Model</button>
     </form>
     
     <!-- Message will now appear below the form -->
-    <div id="message"></div>
+    <div id="message" role="alert" aria-live="polite"></div>
   </div>
 
   <script>
     const form = document.getElementById("uploadForm");
     const messageDiv = document.getElementById("message");
-    const uploadButton = form.querySelector("button[type='submit']"); 
+    const uploadButton = document.getElementById("uploadButton");
+    const fileInput = document.getElementById("modelFile");
+    const fileInputWrapper = document.getElementById("fileInputWrapper");
+    const fileName = document.getElementById("fileName");
+    const uploadProgress = document.getElementById("uploadProgress");
+    const progressBar = document.getElementById("progressBar");
+
+    // Enhanced file input handling
+    fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        fileName.textContent = file.name;
+        fileInputWrapper.classList.add('has-file');
+        
+        // Validate file type
+        const validTypes = ['.glb', '.gltf', '.fbx'];
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        
+        if (!validTypes.includes(fileExtension)) {
+          messageDiv.textContent = `Invalid file type. Please upload .glb, .gltf, or .fbx files.`;
+          messageDiv.className = "message-box error";
+          fileInput.value = '';
+          fileName.textContent = 'No file chosen';
+          fileInputWrapper.classList.remove('has-file');
+        }
+      } else {
+        fileName.textContent = 'No file chosen';
+        fileInputWrapper.classList.remove('has-file');
+      }
+    });
+
+    // Drag and drop support
+    fileInputWrapper.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      fileInputWrapper.style.borderColor = '#00d4ff';
+      fileInputWrapper.style.background = 'rgba(0, 212, 255, 0.1)';
+    });
+
+    fileInputWrapper.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      if (!fileInputWrapper.classList.contains('has-file')) {
+        fileInputWrapper.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+        fileInputWrapper.style.background = 'rgba(255, 255, 255, 0.1)';
+      }
+    });
+
+    fileInputWrapper.addEventListener('drop', function(e) {
+      e.preventDefault();
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        fileInput.files = files;
+        fileInput.dispatchEvent(new Event('change'));
+      }
+    });
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const formData = new FormData(form);
+      const file = fileInput.files[0];
+
+      // Validate file size (50MB limit)
+      if (file && file.size > 50 * 1024 * 1024) {
+        messageDiv.textContent = "File size too large. Please upload files smaller than 50MB.";
+        messageDiv.className = "message-box error";
+        return;
+      }
 
       // Loading State
       uploadButton.disabled = true;
       uploadButton.textContent = "Uploading...";
-      messageDiv.textContent = ""; // Clear previous message
-      messageDiv.className = ""; // Clear previous class
+      uploadButton.classList.add('loading');
+      messageDiv.textContent = "";
+      messageDiv.className = "";
+      uploadProgress.style.display = 'block';
+      progressBar.style.width = '0%';
 
       try {
+        // Simulate progress for better UX
+        const progressInterval = setInterval(() => {
+          const currentWidth = parseInt(progressBar.style.width) || 0;
+          if (currentWidth < 90) {
+            progressBar.style.width = (currentWidth + 10) + '%';
+          }
+        }, 200);
+
         const response = await fetch("/api/upload", {
           method: "POST",
           body: formData
         });
 
+        clearInterval(progressInterval);
+        progressBar.style.width = '100%';
+
         if (response.ok) {
           const data = await response.json();
-          messageDiv.innerHTML = `${data.message || "Model uploaded successfully!"}`;
+          messageDiv.innerHTML = `✅ ${data.message || "Model uploaded successfully!"}`;
           messageDiv.className = "message-box success";
           form.reset();
+          fileName.textContent = 'No file chosen';
+          fileInputWrapper.classList.remove('has-file');
         } else {
           const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
-          messageDiv.textContent = `Upload failed: ${errorData.message}`;
+          messageDiv.textContent = `❌ Upload failed: ${errorData.message}`;
           messageDiv.className = "message-box error";
         }
       } catch (error) {
-        messageDiv.textContent = "Error uploading model. Check console for details.";
+        messageDiv.textContent = "❌ Error uploading model. Check your connection and try again.";
         messageDiv.className = "message-box error";
-        console.error("Fetch error:", error);
+        console.error("Upload error:", error);
       } finally {
         uploadButton.disabled = false;
-        uploadButton.textContent = "Upload";
+        uploadButton.textContent = "Upload Model";
+        uploadButton.classList.remove('loading');
+        uploadProgress.style.display = 'none';
         
-        // Set message to disappear after 5 seconds (increased for better readability)
+        // Auto-hide message after 5 seconds
         setTimeout(() => {
-          messageDiv.textContent = "";
-          messageDiv.className = "";
+          if (messageDiv.textContent.includes('successfully')) {
+            messageDiv.textContent = "";
+            messageDiv.className = "";
+          }
         }, 5000);
       }
     });
+
+    // Handle mobile viewport height issues
+    function setViewportHeight() {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+
+    setViewportHeight();
+    window.addEventListener('resize', setViewportHeight);
+
+    // Prevent zoom on input focus for mobile
+    document.addEventListener('touchstart', function() {}, {passive: true});
   </script>
 </body>
 </html>
