@@ -504,7 +504,6 @@
 // styleSheet.textContent = responsiveStyles;
 // document.head.appendChild(styleSheet);
 
-// script.js - WITH UNITY INTEGRATION
 async function loadModels() {
   try {
     console.log('Loading models...');
@@ -583,7 +582,7 @@ function launchInUnity(modelUrl, modelName, modelFormat) {
   const button = event.target.closest('.btn');
   if (button) {
     const originalHTML = button.innerHTML;
-    button.innerHTML = '<span class="btn-icon"></span> Launching...';
+    button.innerHTML = '<span class="btn-icon">⏳</span> Launching...';
     button.disabled = true;
     
     setTimeout(() => {
@@ -592,41 +591,32 @@ function launchInUnity(modelUrl, modelName, modelFormat) {
     }, 3000);
   }
   
-  // FIXED: Create a cleaner protocol URL without encoding
-  // Remove the https:// from the URL for the protocol
+  // FIX: Use underscore as separator instead of pipe
   const cleanUrl = modelUrl.replace('https://', '');
   
-  // Create the protocol URL (format: webtounity://url|name|format)
-  // Use decodeURIComponent to get clean text for the protocol
-  const unityUrl = `webtounity://${cleanUrl}|${modelName}|${modelFormat}`;
+  // Replace spaces and special characters with underscores
+  const safeName = modelName.replace(/ /g, '_').replace(/\|/g, '_');
+  const safeUrl = cleanUrl.replace(/\|/g, '_');
   
-  console.log('Clean Unity protocol URL:', unityUrl);
+  // Use underscores as separators
+  const unityUrl = `webtounity://${safeUrl}_${safeName}_${modelFormat}`;
   
-  // Try to launch Unity using a different method
+  console.log('Safe Unity protocol URL:', unityUrl);
+  
+  // Try to launch Unity
   try {
-    // Method 1: Try direct location change
     window.location.href = unityUrl;
   } catch (error) {
-    console.log('Method 1 failed, trying Method 2...');
-    
-    // Method 2: Create an iframe (works in some browsers)
-    try {
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = unityUrl;
-      document.body.appendChild(iframe);
-      setTimeout(() => document.body.removeChild(iframe), 100);
-    } catch (error2) {
-      console.log('Method 2 failed, trying Method 3...');
-      
-      // Method 3: Create a link and click it
-      const link = document.createElement('a');
-      link.href = unityUrl;
-      link.click();
-    }
+    console.log('Direct method failed, trying alternative...');
+    // Fallback method
+    const link = document.createElement('a');
+    link.href = unityUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
   
-  // Show instructions if Unity doesn't open (after 2 seconds)
+  // Show instructions if Unity doesn't open
   setTimeout(() => {
     if (!document.hidden) {
       showUnityInstallInstructions(modelUrl, modelName, modelFormat);
@@ -680,17 +670,74 @@ function showUnityInstallInstructions(modelUrl, modelName, modelFormat) {
 }
 
 function downloadUnityViewer() {
-  // You'll need to host the actual Unity app file
-  // For now, show a message
-  alert('Unity Viewer download link will be available soon!\n\nFor now, you can download models manually and import them into Unity.');
+  // Use your website's download link
+  const downloadUrl = 'https://threed-model-website.onrender.com/downloads/UnityModelViewer.exe';
   
-  // When you have the app hosted, uncomment this:
+  console.log('Starting download from:', downloadUrl);
   
   const link = document.createElement('a');
-  link.href = '/downloads/UnityModelViewer.exe'; // Your actual file path
+  link.href = downloadUrl;
   link.download = 'UnityModelViewer.exe';
-  link.click();
   
+  // Add loading state
+  const button = event.target;
+  const originalText = button.innerHTML;
+  button.innerHTML = '⬇️ Downloading...';
+  button.disabled = true;
+  
+  // Trigger download
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Show installation instructions
+  setTimeout(() => {
+    showInstallationInstructions();
+    button.innerHTML = originalText;
+    button.disabled = false;
+  }, 1000);
+}
+
+function showInstallationInstructions() {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9); z-index: 10000; display: flex;
+    justify-content: center; align-items: center; font-family: 'Poppins', sans-serif;
+  `;
+  
+  modal.innerHTML = `
+    <div style="background: #1a1a2e; color: white; padding: 30px; border-radius: 10px; max-width: 500px; border: 2px solid #00d4ff;">
+      <h3 style="color: #00d4ff; margin-bottom: 20px;">🎮 Installation Instructions</h3>
+      
+      <div style="text-align: left; margin: 20px 0;">
+        <h4 style="color: #00d4ff; margin-bottom: 15px;">Follow these steps:</h4>
+        
+        <div style="background: rgba(0, 212, 255, 0.1); padding: 15px; border-radius: 8px; margin: 10px 0;">
+          <strong>Step 1:</strong> Run the downloaded "UnityModelViewer.exe"
+        </div>
+        
+        <div style="background: rgba(0, 212, 255, 0.1); padding: 15px; border-radius: 8px; margin: 10px 0;">
+          <strong>Step 2:</strong> Allow the app to register the protocol (click "Yes" to security prompts)
+        </div>
+        
+        <div style="background: rgba(0, 212, 255, 0.1); padding: 15px; border-radius: 8px; margin: 10px 0;">
+          <strong>Step 3:</strong> Return to the website and click "Open in Unity" on any model
+        </div>
+        
+        <p style="margin-top: 15px; font-size: 14px; color: #ccc;">
+          💡 <strong>Tip:</strong> The app will automatically download models and save them to your Downloads folder.
+        </p>
+      </div>
+      
+      <button onclick="this.parentElement.parentElement.remove()" class="btn" 
+              style="background: #007acc; margin-top: 20px; width: 100%;">
+        Got It!
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
 }
 
 // ==================== EXISTING FUNCTIONS (KEEP THESE) ====================
