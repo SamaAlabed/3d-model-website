@@ -491,39 +491,6 @@ app.get('/api/files/:filename', async (req, res) => {
 });
 
 // -------------------------
-// DOWNLOAD ROUTE FOR UNITY APP
-// -------------------------
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-app.get('/downloads/UnityModelViewer.exe', (req, res) => {
-  try {
-    const filePath = path.join(__dirname, 'public', 'downloads', 'UnityModelViewer.exe');
-    
-    console.log('Sending file from:', filePath);
-    
-    // Set download headers
-    res.setHeader('Content-Disposition', 'attachment; filename="UnityModelViewer.exe"');
-    res.setHeader('Content-Type', 'application/octet-stream');
-    
-    // Send the file
-    res.sendFile(filePath, (err) => {
-      if (err) {
-        console.error('File send error:', err);
-        res.status(404).json({ error: 'Unity Viewer not found' });
-      } else {
-        console.log('File sent successfully');
-      }
-    });
-    
-  } catch (error) {
-    console.error('Download error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// -------------------------
 // 6. HEALTH CHECK
 // -------------------------
 app.get('/api/health', (req, res) => {
