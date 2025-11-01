@@ -551,15 +551,15 @@ async function loadModels() {
         <!-- Actions container - ADDED UNITY BUTTON -->
        <div class="card-actions">
         <button class="btn view-btn" onclick="viewModel('${this.escapeHtml(fullPath)}')">
-            <span class="btn-icon">🌐</span>
+            <span class="btn-icon"></span>
             <span class="btn-text">3D View</span>
         </button>
         <button class="btn unity-btn" onclick="launchInUnity('${this.escapeHtml(fullPath)}', '${this.escapeHtml(model.name)}', '${format}')">
-            <span class="btn-icon">🚀</span>
+            <span class="btn-icon"></span>
             <span class="btn-text">Open in Unity</span>
         </button>
         <button class="btn download-btn" onclick="downloadModel('${this.escapeHtml(fullPath)}', '${this.escapeHtml(model.name)}')">
-            <span class="btn-icon">📥</span>
+            <span class="btn-icon"></span>
             <span class="btn-text">Download</span>
         </button>
     </div>
@@ -576,6 +576,7 @@ async function loadModels() {
 // ==================== UNITY INTEGRATION FUNCTIONS ====================
 
 // ==================== UNITY INTEGRATION FUNCTIONS ====================
+// ==================== UNITY INTEGRATION FUNCTIONS ====================
 
 function launchInUnity(modelUrl, modelName, modelFormat) {
     console.log('Launching Unity with:', modelUrl, modelName, modelFormat);
@@ -584,7 +585,7 @@ function launchInUnity(modelUrl, modelName, modelFormat) {
     const button = event.target.closest('.btn');
     if (button) {
         const originalHTML = button.innerHTML;
-        button.innerHTML = '<span class="btn-icon">🚀</span> Launching...';
+        button.innerHTML = '<span class="btn-icon"></span> Launching...';
         button.disabled = true;
         
         setTimeout(() => {
@@ -593,17 +594,21 @@ function launchInUnity(modelUrl, modelName, modelFormat) {
         }, 3000);
     }
     
-    // Unity's official deep link format
-    const unityUrl = `unitydl://import?url=${encodeURIComponent(modelUrl)}&name=${encodeURIComponent(modelName)}`;
+    // Use our working protocol with underscores (not pipes)
+    const cleanUrl = modelUrl.replace('https://', '');
+    const safeName = modelName.replace(/ /g, '_').replace(/\|/g, '_');
+    const safeUrl = cleanUrl.replace(/\|/g, '_');
     
-    console.log('Launching Unity via deep link:', unityUrl);
+    // Use underscores as separators (this worked before)
+    const unityUrl = `webtounity://${safeUrl}_${safeName}_${modelFormat}`;
     
-    // Try to open Unity
+    console.log('Safe Unity protocol URL:', unityUrl);
+    
+    // Try to launch Unity
     try {
         window.location.href = unityUrl;
     } catch (error) {
         console.log('Direct method failed, trying alternative...');
-        // Fallback method
         const link = document.createElement('a');
         link.href = unityUrl;
         document.body.appendChild(link);
@@ -611,13 +616,13 @@ function launchInUnity(modelUrl, modelName, modelFormat) {
         document.body.removeChild(link);
     }
     
-    // Show professional instructions if Unity doesn't open
+    // Show professional instructions
     setTimeout(() => {
-        showUnityProfessionalInstructions(modelUrl, modelName);
+        showUnityProfessionalInstructions(modelUrl, modelName, modelFormat);
     }, 2000);
 }
 
-function showUnityProfessionalInstructions(modelUrl, modelName) {
+function showUnityProfessionalInstructions(modelUrl, modelName, modelFormat) {
     const modal = document.createElement('div');
     modal.style.cssText = `
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -627,36 +632,42 @@ function showUnityProfessionalInstructions(modelUrl, modelName) {
     
     modal.innerHTML = `
         <div style="background: #1a1a2e; color: white; padding: 40px; border-radius: 15px; max-width: 600px; border: 3px solid #007acc;">
-            <h2 style="color: #007acc; text-align: center; margin-bottom: 30px;">🚀 Open in Unity</h2>
+            <h2 style="color: #007acc; text-align: center; margin-bottom: 30px;"> Open in Unity</h2>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <div style="font-size: 4em; margin-bottom: 20px;">⚡</div>
+                <h3 style="color: #00d4ff;">One-Click Unity Integration</h3>
+                <p style="margin: 15px 0; color: #ccc;">For seamless Unity workflow integration</p>
+            </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
                 <div style="text-align: center; padding: 20px; background: rgba(0, 122, 204, 0.1); border-radius: 10px;">
-                    <div style="font-size: 3em; margin-bottom: 15px;">⚡</div>
-                    <h4 style="color: #007acc;">Automatic Import</h4>
-                    <p style="font-size: 14px; margin: 10px 0;">Unity should open automatically with the model ready to import</p>
-                    <button onclick="retryUnityLaunch('${modelUrl}', '${modelName}')" class="btn" style="background: #007acc; margin-top: 10px;">
-                        Try Again
+                    <div style="font-size: 2em; margin-bottom: 10px;"></div>
+                    <h4 style="color: #007acc;">Setup Required</h4>
+                    <p style="font-size: 14px; margin: 10px 0; color: #ccc;">Install our Unity connector once</p>
+                    <button onclick="downloadUnityConnector()" class="btn" style="background: #007acc; margin-top: 10px; width: 100%;">
+                        Download Connector
                     </button>
                 </div>
                 
                 <div style="text-align: center; padding: 20px; background: rgba(0, 212, 255, 0.1); border-radius: 10px;">
-                    <div style="font-size: 3em; margin-bottom: 15px;">📋</div>
+                    <div style="font-size: 2em; margin-bottom: 10px;">📋</div>
                     <h4 style="color: #00d4ff;">Manual Import</h4>
-                    <p style="font-size: 14px; margin: 10px 0;">Download and import manually into any Unity project</p>
-                    <button onclick="downloadForProfessional('${modelUrl}', '${modelName}')" class="btn" style="background: #00d4ff; margin-top: 10px;">
-                        Download Model
+                    <p style="font-size: 14px; margin: 10px 0; color: #ccc;">Import directly into any project</p>
+                    <button onclick="downloadForProfessional('${modelUrl}', '${modelName}')" class="btn" style="background: #00d4ff; margin-top: 10px; width: 100%;">
+                        Download ${modelName}
                     </button>
                 </div>
             </div>
             
             <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-top: 20px;">
-                <h4 style="color: #00d4ff; margin-bottom: 15px;">For Enterprise Users:</h4>
-                <ul style="text-align: left; color: #ccc;">
-                    <li>Ensure Unity 2019.4+ is installed</li>
-                    <li>Works with Unity Personal, Plus, and Pro</li>
-                    <li>Supports FBX, GLB, and OBJ formats</li>
-                    <li>Automatic material and texture import</li>
-                </ul>
+                <h4 style="color: #00d4ff; margin-bottom: 15px;">Enterprise Features:</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; color: #ccc; font-size: 14px;">
+                    <div>✓ One-click import</div>
+                    <div>✓ Auto-material setup</div>
+                    <div>✓ Version control ready</div>
+                    <div>✓ Team collaboration</div>
+                </div>
             </div>
             
             <button onclick="this.parentElement.parentElement.remove()" class="btn" style="background: #666; margin-top: 30px; width: 100%;">
@@ -668,9 +679,63 @@ function showUnityProfessionalInstructions(modelUrl, modelName) {
     document.body.appendChild(modal);
 }
 
-function retryUnityLaunch(modelUrl, modelName) {
-    const unityUrl = `unitydl://import?url=${encodeURIComponent(modelUrl)}&name=${encodeURIComponent(modelName)}`;
-    window.location.href = unityUrl;
+function downloadUnityConnector() {
+    // Use our working download link
+    const downloadUrl = 'https://threed-model-website.onrender.com/downloads/UnityModelViewer.exe';
+    
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = 'UnityConnector.exe';
+    
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '⬇️ Downloading...';
+    button.disabled = true;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setTimeout(() => {
+        showConnectorInstructions();
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }, 1000);
+}
+
+function showConnectorInstructions() {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.95); z-index: 10000; display: flex;
+        justify-content: center; align-items: center; font-family: 'Poppins', sans-serif;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: #1a1a2e; color: white; padding: 40px; border-radius: 15px; max-width: 500px; border: 3px solid #00d4ff;">
+            <h2 style="color: #00d4ff; text-align: center; margin-bottom: 30px;">🔧 Setup Complete</h2>
+            
+            <div style="text-align: left; margin: 20px 0;">
+                <h4 style="color: #00d4ff; margin-bottom: 15px;">Next Steps:</h4>
+                <ol style="color: #ccc; line-height: 2;">
+                    <li><strong>Run</strong> the UnityConnector.exe</li>
+                    <li><strong>Allow</strong> protocol registration</li>
+                    <li><strong>Return</strong> to the website</li>
+                    <li><strong>Click</strong> "Open in Unity" on any model</li>
+                </ol>
+            </div>
+            
+            <div style="background: rgba(0, 212, 255, 0.1); padding: 15px; border-radius: 10px; margin: 20px 0;">
+                <p style="color: #00d4ff; margin: 0;">💡 <strong>Pro Tip:</strong> Install once, use across all projects</p>
+            </div>
+            
+            <button onclick="this.parentElement.parentElement.remove()" class="btn" style="background: #007acc; margin-top: 20px; width: 100%;">
+                Got It - Start Using!
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
 }
 
 function downloadForProfessional(modelUrl, modelName) {
@@ -678,7 +743,6 @@ function downloadForProfessional(modelUrl, modelName) {
     link.href = modelUrl;
     link.download = modelName + modelUrl.substring(modelUrl.lastIndexOf('.'));
     
-    // Professional loading state
     const button = event.target;
     const originalText = button.innerHTML;
     button.innerHTML = '⬇️ Preparing...';
@@ -689,57 +753,48 @@ function downloadForProfessional(modelUrl, modelName) {
     document.body.removeChild(link);
     
     setTimeout(() => {
+        showImportInstructions();
         button.innerHTML = originalText;
         button.disabled = false;
-        showImportInstructions();
     }, 1000);
 }
 
 function showImportInstructions() {
-    alert(`✅ Model downloaded!\n\nTo import into Unity:\n1. Open your Unity project\n2. Drag the file into Assets window\n3. Wait for import completion\n4. Drag from Assets to Scene`);
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.95); z-index: 10000; display: flex;
+        justify-content: center; align-items: center; font-family: 'Poppins', sans-serif;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: #1a1a2e; color: white; padding: 40px; border-radius: 15px; max-width: 500px; border: 3px solid #00d4ff;">
+            <h2 style="color: #00d4ff; text-align: center; margin-bottom: 30px;">✅ Ready to Import</h2>
+            
+            <div style="text-align: left; margin: 20px 0;">
+                <h4 style="color: #00d4ff; margin-bottom: 15px;">Import into Unity:</h4>
+                <ol style="color: #ccc; line-height: 2;">
+                    <li><strong>Open</strong> your Unity project</li>
+                    <li><strong>Drag</strong> the file into Assets window</li>
+                    <li><strong>Wait</strong> for import completion</li>
+                    <li><strong>Drag</strong> from Assets to Scene</li>
+                </ol>
+            </div>
+            
+            <div style="background: rgba(0, 212, 255, 0.1); padding: 15px; border-radius: 10px; margin: 20px 0;">
+                <p style="color: #00d4ff; margin: 0;">🎯 <strong>Enterprise Ready:</strong> Works with all Unity versions</p>
+            </div>
+            
+            <button onclick="this.parentElement.parentElement.remove()" class="btn" style="background: #007acc; margin-top: 20px; width: 100%;">
+                Start Creating!
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
 }
 
-function showInstallationInstructions() {
-  const modal = document.createElement('div');
-  modal.style.cssText = `
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9); z-index: 10000; display: flex;
-    justify-content: center; align-items: center; font-family: 'Poppins', sans-serif;
-  `;
-  
-  modal.innerHTML = `
-    <div style="background: #1a1a2e; color: white; padding: 30px; border-radius: 10px; max-width: 500px; border: 2px solid #00d4ff;">
-      <h3 style="color: #00d4ff; margin-bottom: 20px;">🎮 Installation Instructions</h3>
-      
-      <div style="text-align: left; margin: 20px 0;">
-        <h4 style="color: #00d4ff; margin-bottom: 15px;">Follow these steps:</h4>
-        
-        <div style="background: rgba(0, 212, 255, 0.1); padding: 15px; border-radius: 8px; margin: 10px 0;">
-          <strong>Step 1:</strong> Run the downloaded "UnityModelViewer.exe"
-        </div>
-        
-        <div style="background: rgba(0, 212, 255, 0.1); padding: 15px; border-radius: 8px; margin: 10px 0;">
-          <strong>Step 2:</strong> Allow the app to register the protocol (click "Yes" to security prompts)
-        </div>
-        
-        <div style="background: rgba(0, 212, 255, 0.1); padding: 15px; border-radius: 8px; margin: 10px 0;">
-          <strong>Step 3:</strong> Return to the website and click "Open in Unity" on any model
-        </div>
-        
-        <p style="margin-top: 15px; font-size: 14px; color: #ccc;">
-          💡 <strong>Tip:</strong> The app will automatically download models and save them to your Downloads folder.
-        </p>
-      </div>
-      
-      <button onclick="this.parentElement.parentElement.remove()" class="btn" 
-              style="background: #007acc; margin-top: 20px; width: 100%;">
-        Got It!
-      </button>
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-}
+
 
 // ==================== EXISTING FUNCTIONS (KEEP THESE) ====================
 
