@@ -552,15 +552,15 @@ async function loadModels() {
         <!-- Actions container - ADDED UNITY BUTTON -->
         <div class="card-actions">
           <button class="btn view-btn" onclick="viewModel('${this.escapeHtml(fullPath)}')">
-            <span class="btn-icon">🌐</span>
+            <span class="btn-icon"></span>
             <span class="btn-text">3D View</span>
           </button>
           <button class="btn unity-btn" onclick="launchInUnity('${this.escapeHtml(fullPath)}', '${this.escapeHtml(model.name)}', '${format}')">
-            <span class="btn-icon">🎮</span>
+            <span class="btn-icon"></span>
             <span class="btn-text">Open in Unity</span>
           </button>
           <button class="btn download-btn" onclick="downloadModel('${this.escapeHtml(fullPath)}', '${this.escapeHtml(model.name)}')">
-            <span class="btn-icon">📥</span>
+            <span class="btn-icon"></span>
             <span class="btn-text">Download</span>
           </button>
         </div>
@@ -583,7 +583,7 @@ function launchInUnity(modelUrl, modelName, modelFormat) {
   const button = event.target.closest('.btn');
   if (button) {
     const originalHTML = button.innerHTML;
-    button.innerHTML = '<span class="btn-icon">⏳</span> Launching...';
+    button.innerHTML = '<span class="btn-icon"></span> Launching...';
     button.disabled = true;
     
     setTimeout(() => {
@@ -592,15 +592,39 @@ function launchInUnity(modelUrl, modelName, modelFormat) {
     }, 3000);
   }
   
+  // FIXED: Create a cleaner protocol URL without encoding
+  // Remove the https:// from the URL for the protocol
+  const cleanUrl = modelUrl.replace('https://', '');
+  
   // Create the protocol URL (format: webtounity://url|name|format)
-  const encodedUrl = encodeURIComponent(modelUrl);
-  const encodedName = encodeURIComponent(modelName);
-  const unityUrl = `webtounity://${encodedUrl}|${encodedName}|${modelFormat}`;
+  // Use decodeURIComponent to get clean text for the protocol
+  const unityUrl = `webtounity://${cleanUrl}|${modelName}|${modelFormat}`;
   
-  console.log('Unity protocol URL:', unityUrl);
+  console.log('Clean Unity protocol URL:', unityUrl);
   
-  // Try to launch Unity
-  window.location.href = unityUrl;
+  // Try to launch Unity using a different method
+  try {
+    // Method 1: Try direct location change
+    window.location.href = unityUrl;
+  } catch (error) {
+    console.log('Method 1 failed, trying Method 2...');
+    
+    // Method 2: Create an iframe (works in some browsers)
+    try {
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = unityUrl;
+      document.body.appendChild(iframe);
+      setTimeout(() => document.body.removeChild(iframe), 100);
+    } catch (error2) {
+      console.log('Method 2 failed, trying Method 3...');
+      
+      // Method 3: Create a link and click it
+      const link = document.createElement('a');
+      link.href = unityUrl;
+      link.click();
+    }
+  }
   
   // Show instructions if Unity doesn't open (after 2 seconds)
   setTimeout(() => {
@@ -661,12 +685,12 @@ function downloadUnityViewer() {
   alert('Unity Viewer download link will be available soon!\n\nFor now, you can download models manually and import them into Unity.');
   
   // When you have the app hosted, uncomment this:
-  /*
+  
   const link = document.createElement('a');
   link.href = '/downloads/UnityModelViewer.exe'; // Your actual file path
   link.download = 'UnityModelViewer.exe';
   link.click();
-  */
+  
 }
 
 // ==================== EXISTING FUNCTIONS (KEEP THESE) ====================
