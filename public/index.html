@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -24,6 +24,45 @@
   <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script src="script.js"></script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <title>3D Model Gallery</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="nav-button">
+    <a href="upload.html" class="btn">Upload Model</a>
+  </div>
+  
+  <div class="container">
+    <h1>Available 3D Models</h1>
+    
+    <!-- Unity Integration Section -->
+    <div class="unity-integration-section">
+      <h2>Unity 3D Viewer</h2>
+      <div class="unity-container" id="unity-container">
+        <div class="unity-placeholder">
+          <div class="unity-icon">🎮</div>
+          <p>Select a model to view it in Unity</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="modelsContainer"></div>
+  </div>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <script src="script.js"></script>
 </body>
