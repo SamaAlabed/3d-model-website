@@ -6,7 +6,7 @@
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #1a1a2e, #16213e);
   color: #e0e0e0;
   line-height: 1.6;
@@ -38,7 +38,7 @@ h1 {
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
   touch-action: manipulation; /* Better touch on mobile */
@@ -62,10 +62,51 @@ h1 {
   z-index: 1000;
 }
 
+/* Form Styles (for upload page) */
+form {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+form textarea {
+  resize: vertical;
+  max-width: 100%;
+  display: block;
+  overflow: auto;
+  min-height: 120px; /* Better mobile experience */
+}
+
+form input,
+form textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+  font-size: 16px;
+}
+
+form input::placeholder,
+form textarea::placeholder {
+  color: #aaa;
+}
+
+form button {
+  width: 100%;
+  margin-top: 10px;
+}
+
 /* Model Cards (for browse page) */
 #modelsContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 25px;
   margin-top: 20px;
 }
@@ -106,7 +147,7 @@ h1 {
 .model-card .card-actions {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Reduced gap for better fit */
+  gap: 12px;
   align-items: stretch;
   margin-top: 15px;
 }
@@ -117,119 +158,511 @@ h1 {
   margin: 0;
 }
 
-/* NEW: Unity Button Style */
+.app-select {
+  flex: 1;
+  min-width: 140px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.app-select:focus {
+  outline: none;
+  border-color: #00d4ff;
+}
+
+.app-select option {
+  background: #16213e;
+  color: #e0e0e0;
+}
+
+/* Inline Viewer (for browse page) */
+#inlineViewer {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+
+#inlineViewer.active {
+  display: flex;
+}
+
+#viewerContainer {
+  width: 80%;
+  height: 80%;
+  background: #111;
+  border-radius: 12px;
+  position: relative;
+}
+
+#closeViewer {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ff4757;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 18px;
+  z-index: 100;
+}
+
+#closeViewer:hover {
+  background: #ff3742;
+}
+
+/* Additional viewer-specific styles */
+#uiContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+#uiContainer > * {
+  pointer-events: auto;
+}
+
+#info {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 14px;
+  max-width: 300px;
+  opacity: 1;
+  transition: opacity 0.5s;
+}
+
+#info.hidden {
+  opacity: 0;
+}
+
+#controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+#modelInfo {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+  display: none;
+}
+
+#loadingSpinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border: 5px solid #00d4ff;
+  border-top: 5px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 50;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+#errorMsg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 0, 0, 0.8);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  z-index: 200;
+  display: none;
+}
+
+/* Unity-specific styles */
 .unity-btn {
-  background: linear-gradient(45deg, #007acc, #00a8ff) !important; /* Unity Blue */
+  background: linear-gradient(45deg, #007acc, #00a8ff) !important;
 }
 
 .unity-btn:hover {
   background: linear-gradient(45deg, #005a9e, #0097e6) !important;
 }
 
-/* Responsive Breakpoints */
+.instructions-btn {
+  background: linear-gradient(45deg, #6c757d, #8e9a9d) !important;
+}
+
+.instructions-btn:hover {
+  background: linear-gradient(45deg, #545b62, #6c757d) !important;
+}
+
+.unity-instructions {
+  background: rgba(0, 122, 204, 0.1);
+  border-left: 4px solid #007acc;
+  padding: 20px;
+  margin: 15px 0;
+  border-radius: 0 8px 8px 0;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.unity-guide h4 {
+  color: #00d4ff;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+}
+
+.step {
+  margin: 10px 0;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.step:last-child {
+  border-bottom: none;
+}
+
+.tips {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+.tips ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.tips li {
+  margin: 5px 0;
+  color: #ccc;
+}
+
+.unity-links {
+  margin-top: 15px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.unity-links a {
+  color: #00d4ff;
+  text-decoration: none;
+  padding: 8px 15px;
+  background: rgba(0, 212, 255, 0.1);
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.unity-links a:hover {
+  background: rgba(0, 212, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Enhanced card actions for better Unity visibility */
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* ========== RESPONSIVE BREAKPOINTS ========== */
+
+/* Tablets and smaller desktops */
+@media (max-width: 1024px) {
+  .container {
+    padding: 15px;
+  }
+  
+  h1 {
+    font-size: 2.2em;
+    margin-bottom: 25px;
+  }
+  
+  #modelsContainer {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .model-card {
+    padding: 25px;
+    min-height: 300px;
+  }
+}
+
+/* Tablets and large phones */
 @media (max-width: 768px) {
+  h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+  }
+  
+  .container {
+    padding: 12px;
+  }
+  
   #modelsContainer {
     grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  
+  #viewerContainer {
+    width: 95%;
+    height: 95%;
   }
   
   .model-card .card-actions {
     flex-direction: column;
+    gap: 10px;
+  }
+  
+  .model-card .btn,
+  .app-select {
+    width: 100%;
+  }
+  
+  /* Form adjustments */
+  form {
+    padding: 20px;
+    margin: 0 10px;
+  }
+  
+  form input,
+  form textarea {
+    padding: 10px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  /* Navigation button */
+  .nav-button {
+    top: 15px;
+    right: 15px;
+  }
+  
+  /* Viewer UI adjustments */
+  #uiContainer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px;
+  }
+  
+  #controls {
+    justify-content: center;
+    margin-top: 10px;
+    gap: 8px;
+  }
+  
+  #info {
+    max-width: 100%;
+    font-size: 12px;
+    padding: 10px;
+  }
+  
+  #modelInfo {
+    font-size: 12px;
+    padding: 8px;
+  }
+  
+  /* Unity links */
+  .unity-links {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .card-actions {
+    gap: 8px;
   }
 }
 
-/* Additional styles for loading/error states (from script.js analysis) */
-.loading-spinner {
-  text-align: center;
-  padding: 40px;
-  color: #00d4ff;
-  font-size: 1.1em;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 2px dashed rgba(0, 212, 255, 0.3);
-}
-
-.empty-state p {
-  margin-bottom: 20px;
-  font-size: 1.1em;
-}
-
-.error-state {
-  text-align: center;
-  padding: 40px 20px;
-  background: rgba(255, 0, 0, 0.1);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 0, 0, 0.3);
-}
-
-.error-icon {
-  font-size: 3em;
-  margin-bottom: 20px;
-}
-
-.error-state h3 {
-  color: #ff6b6b;
-  margin-bottom: 15px;
-}
-
-.error-state ul {
-  text-align: left;
-  display: inline-block;
-  margin: 15px 0;
-}
-
-.error-detail {
-  font-size: 0.9em;
-  opacity: 0.8;
-  margin-top: 15px;
-}
-
-/* Toast Notification Styles */
-.toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #333;
-  color: white;
-  padding: 15px 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  z-index: 5000;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 350px;
-  animation: slideIn 0.5s ease-out;
-}
-
-.toast-info {
-  background: #007acc; /* Unity Blue for info */
-}
-
-.toast-error {
-  background: #ff4757;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.2em;
-  cursor: pointer;
-  margin-left: 10px;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
+/* Mobile phones */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
   }
-  to {
-    transform: translateY(0);
-    opacity: 1;
+  
+  .container {
+    padding: 10px;
+  }
+  
+  #modelsContainer {
+    gap: 15px;
+  }
+  
+  .model-card {
+    padding: 20px;
+    min-height: 280px;
+  }
+  
+  .model-card h3 {
+    font-size: 1.2em;
+  }
+  
+  .model-card p {
+    font-size: 0.9em;
+  }
+  
+  /* Controls adjustments */
+  #controls {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  #info {
+    font-size: 11px;
+    padding: 8px;
+  }
+  
+  #modelInfo {
+    font-size: 11px;
+    padding: 6px;
+  }
+  
+  /* Button sizing */
+  .btn {
+    padding: 12px 16px; /* Larger touch targets */
+    font-size: 16px; /* Better readability */
+  }
+  
+  /* Form elements */
+  form {
+    padding: 15px;
+  }
+  
+  form input,
+  form textarea {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  
+  /* Loading spinner */
+  #loadingSpinner {
+    width: 40px;
+    height: 40px;
+    border-width: 4px;
   }
 }
+
+/* Small phones */
+@media (max-width: 360px) {
+  h1 {
+    font-size: 1.6em;
+  }
+  
+  .model-card {
+    padding: 15px;
+    min-height: 260px;
+  }
+  
+  .btn {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .container {
+    padding: 8px;
+  }
+}
+
+/* Landscape orientation for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .container {
+    padding: 10px;
+  }
+  
+  h1 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+  }
+  
+  #modelsContainer {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+  }
+  
+  .model-card {
+    min-height: 200px;
+    padding: 15px;
+  }
+  
+  /* Viewer adjustments for landscape */
+  #viewerContainer {
+    height: 95%;
+    width: 95%;
+  }
+}
+
+/* High-resolution displays */
+@media (min-resolution: 192dpi) {
+  .btn {
+    border-width: 0.5px; /* Crisper borders */
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .btn:hover,
+  .model-card:hover {
+    transform: none;
+  }
+}
+
+/* Dark mode support (already dark, but for consistency) */
+@media (prefers-color-scheme: dark) {
+  /* Your existing dark theme is perfect */
+}
+
+/* Print styles */
+@media print {
+  .btn,
+  .nav-button,
+  #controls,
+  #uiContainer {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
