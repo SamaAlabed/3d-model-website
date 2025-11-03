@@ -158,7 +158,7 @@ function downloadModel(e, filePath, fileName) {
   }
 }
 
-// send model URL to backend which broadcasts to Unity clients
+// NEW: send model URL to backend which broadcasts to Unity clients
 async function sendToUnity(modelUrl) {
   try {
     const res = await fetch('/api/select-model', {
@@ -179,139 +179,6 @@ async function sendToUnity(modelUrl) {
     showToast('Failed to send to Unity', 'error');
   }
 }
-
-// ===== WebSocket client for site (listen for Unity requests) =====
-const SITE_WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host;
-let siteSocket;
-
-function initSiteWebSocket() {
-  try {
-    // Use the same host as site; if your ws is on same hostname (Render), this is fine.
-    siteSocket = new WebSocket('wss://threed-model-website.onrender.com');
-
-    siteSocket.onopen = () => {
-      console.log('Site WebSocket connected to server');
-    };
-
-    siteSocket.onclose = () => {
-      console.log('Site WebSocket disconnected');
-    };
-
-    siteSocket.onerror = (err) => {
-      console.error('Site WebSocket error:', err);
-    };
-
-    siteSocket.onmessage = (ev) => {
-      try {
-        const msg = JSON.parse(ev.data);
-        console.log('Site WS message:', msg);
-        if (msg.action === 'openModelSelector') {
-          // Show the modal to pick a model
-          showModelPickerModal();
-        }
-      } catch (e) {
-        console.warn('Site WS non-json message', ev.data);
-      }
-    };
-  } catch (e) {
-    console.error('Failed to create site WebSocket', e);
-  }
-}
-
-// Call this at the end of window.onload or after DOM ready
-// initSiteWebSocket();
-
-// ===== Model picker modal implementation =====
-async function showModelPickerModal() {
-  // Fetch models (re-use your /models endpoint)
-  let models;
-  try {
-    const res = await fetch('https://threed-model-website.onrender.com/models');
-    models = await res.json();
-  } catch (e) {
-    showToast('Failed to load models for selection', 'error');
-    return;
-  }
-
-  // Build modal HTML
-  const modalId = 'modelPickerModal';
-  if (document.getElementById(modalId)) return; // already open
-
-  const modalHtml = `
-    <div class="model-picker-modal" id="${modalId}">
-      <div class="model-picker-content">
-        <button class="close-modal" id="${modalId}-close">×</button>
-        <h3>Select a model to send to Unity</h3>
-        <div class="model-picker-list">
-          ${models.map(m => `
-            <div class="picker-item" data-url="https://threed-model-website.onrender.com${m.filePath}">
-              <strong>${escapeHtml(m.name)}</strong><div class="tiny-desc">${escapeHtml(m.author || '')}</div>
-              <div class="picker-actions"><button class="picker-select-btn">Send to Unity</button></div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    </div>
-  `;
-
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-  // Close handler
-  document.getElementById(`${modalId}-close`).addEventListener('click', closeModelPickerModal);
-
-  // Hook select buttons
-  document.querySelectorAll(`#${modalId} .picker-select-btn`).forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      const item = e.target.closest('.picker-item');
-      if (!item) return;
-      const modelUrl = item.dataset.url;
-      // send to server using websocket if possible, otherwise fallback to POST
-      if (siteSocket && siteSocket.readyState === WebSocket.OPEN) {
-        siteSocket.send(JSON.stringify({ action: 'selectModel', modelUrl }));
-        showToast('Model sent to Unity (via WebSocket)', 'info');
-      } else {
-        // fallback, use REST endpoint /api/select-model
-        fetch('/api/select-model', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ modelUrl })
-        }).then(r => {
-          if (r.ok) showToast('Model sent to Unity (via REST)', 'info');
-          else showToast('Failed to send model', 'error');
-        }).catch(() => showToast('Failed to send model', 'error'));
-      }
-      // close modal after selection
-      closeModelPickerModal();
-    });
-  });
-}
-
-function closeModelPickerModal() {
-  const el = document.getElementById('modelPickerModal');
-  if (el) el.remove();
-}
-
-// small CSS for the modal (add to your styles block or keep here)
-const pickerStyles = `
-.model-picker-modal {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:100000;
-}
-.model-picker-content {
-  background:#10101a; padding:20px; border-radius:8px; width:90%; max-width:720px; color:#fff;
-}
-.model-picker-list { display:grid; grid-template-columns:1fr; gap:10px; margin-top:10px; max-height:60vh; overflow:auto; }
-.picker-item { padding:12px; border-radius:6px; background:rgba(255,255,255,0.03); display:flex; justify-content:space-between; align-items:center; }
-.picker-actions button { padding:8px 12px; border-radius:6px; cursor:pointer; }
-`;
-
-// inject picker styles once
-if (!document.getElementById('picker-styles-injected')) {
-  const s = document.createElement('style');
-  s.id = 'picker-styles-injected';
-  s.textContent = pickerStyles;
-  document.head.appendChild(s);
-}
-
 
 // Check if device is mobile
 function isMobileDevice() {
