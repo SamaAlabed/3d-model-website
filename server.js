@@ -172,19 +172,91 @@ app.get('/api/health', (req, res) => {
 // -------------------------
 let wss; // will hold WebSocketServer instance
 
+// function initWebSocket(server) {
+//   wss = new WebSocketServer({ server });
+//   console.log('✅ WebSocket server initialized');
+
+//   wss.on('connection', (ws, req) => {
+//     console.log('🔗 Unity (or other client) connected via WebSocket');
+
+//     ws.on('message', (message) => {
+//       // log raw messages from clients (Unity) if any
+//       try {
+//         console.log('📩 WS message from client:', message.toString());
+//       } catch (e) {
+//         console.log('📩 WS message (non-text) received');
+//       }
+//     });
+
+//     ws.on('close', () => {
+//       console.log('❌ WebSocket client disconnected');
+//     });
+
+//     ws.on('error', (err) => {
+//       console.error('⚠️ WebSocket error:', err);
+//     });
+//   });
+// }
+
 function initWebSocket(server) {
   wss = new WebSocketServer({ server });
   console.log('✅ WebSocket server initialized');
 
   wss.on('connection', (ws, req) => {
-    console.log('🔗 Unity (or other client) connected via WebSocket');
+    console.log('🔗 WebSocket client connected');
 
     ws.on('message', (message) => {
-      // log raw messages from clients (Unity) if any
+      // Expect JSON messages
+      let payload = null;
       try {
-        console.log('📩 WS message from client:', message.toString());
+        payload = JSON.parse(message.toString());
       } catch (e) {
-        console.log('📩 WS message (non-text) received');
+        console.log('📩 Received non-JSON or raw message:', message.toString());
+      }
+
+      if (!payload || !payload.action) {
+        // If no action, just log.
+        console.log('📩 Raw message:', message.toString());
+        return;
+      }
+
+      switch (payload.action) {
+        // Unity asks the website(s) to open the model picker UI
+        case 'requestModel':
+          console.log('➡️ Relay: Unity requested model selection -> notifying web clients');
+          // Broadcast to all clients asking them to open the model selector (browsers)
+          wss.clients.forEach(client => {
+            if (client.readyState === 1) {
+              try {
+                client.send(JSON.stringify({ action: 'openModelSelector' }));
+              } catch (err) {
+                console.error('Error sending openModelSelector:', err);
+              }
+            }
+          });
+          break;
+
+        // Browser selected a model and sent it via WS (preferable)
+        case 'selectModel':
+          if (!payload.modelUrl) {
+            console.warn('selectModel missing modelUrl');
+            break;
+          }
+          console.log('➡️ Relay: Browser selected model -> broadcasting loadModel to all clients');
+          // Broadcast loadModel (Unity will respond to this)
+          wss.clients.forEach(client => {
+            if (client.readyState === 1) {
+              try {
+                client.send(JSON.stringify({ action: 'loadModel', modelUrl: payload.modelUrl }));
+              } catch (err) {
+                console.error('Error sending loadModel:', err);
+              }
+            }
+          });
+          break;
+
+        default:
+          console.log('📩 Unknown action:', payload.action);
       }
     });
 
@@ -197,6 +269,7 @@ function initWebSocket(server) {
     });
   });
 }
+
 
 // API endpoint that frontend calls to notify Unity to load a model
 app.post('/api/select-model', async (req, res) => {
