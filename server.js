@@ -176,26 +176,73 @@ function initWebSocket(server) {
   wss = new WebSocketServer({ server });
   console.log('✅ WebSocket server initialized');
 
-  wss.on('connection', (ws, req) => {
-    console.log('🔗 Unity (or other client) connected via WebSocket');
+  // wss.on('connection', (ws, req) => {
+  //   console.log('🔗 Unity (or other client) connected via WebSocket');
 
-    ws.on('message', (message) => {
-      // log raw messages from clients (Unity) if any
-      try {
-        console.log('📩 WS message from client:', message.toString());
-      } catch (e) {
-        console.log('📩 WS message (non-text) received');
+  //   ws.on('message', (message) => {
+  //     // log raw messages from clients (Unity) if any
+  //     try {
+  //       console.log('📩 WS message from client:', message.toString());
+  //     } catch (e) {
+  //       console.log('📩 WS message (non-text) received');
+  //     }
+  //   });
+
+  //   ws.on('close', () => {
+  //     console.log('❌ WebSocket client disconnected');
+  //   });
+
+  //   ws.on('error', (err) => {
+  //     console.error('⚠️ WebSocket error:', err);
+  //   });
+  // });
+  wss.on('connection', (ws) => {
+  console.log("🔗 Unity connected via WebSocket");
+
+  ws.on('message', async (message) => {
+    try {
+      const data = JSON.parse(message.toString());
+      console.log("📩 WS Request:", data);
+
+      // ✅ Request model list
+      if (data.command === "get_model_list") {
+        const models = await ModelGrid.find({}).sort({ createdAt: -1 });
+
+        ws.send(JSON.stringify({
+          type: "model_list",
+          models: models.map(m => m.filename)
+        }));
+        console.log("📤 Sent model list to Unity");
       }
-    });
 
-    ws.on('close', () => {
-      console.log('❌ WebSocket client disconnected');
-    });
+      // ✅ Request model file
+      if (data.command === "get_model" && data.modelName) {
+        const model = await ModelGrid.findOne({ filename: data.modelName });
+        if (!model) return ws.send(JSON.stringify({ type: "error", message: "Model not found" }));
 
-    ws.on('error', (err) => {
-      console.error('⚠️ WebSocket error:', err);
-    });
+        const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'models' });
+
+        const chunks = [];
+        const downloadStream = bucket.openDownloadStream(model.gridfsId);
+
+        downloadStream.on("data", (chunk) => chunks.push(chunk));
+        downloadStream.on("error", (err) => ws.send(JSON.stringify({ type: "error", message: err.message })));
+        downloadStream.on("end", () => {
+          const buffer = Buffer.concat(chunks);
+          ws.send(JSON.stringify({
+            type: "model_data",
+            filename: model.filename,
+            data: buffer.toString("base64")
+          }));
+          console.log(`📤 Sent model ${model.filename} to Unity`);
+        });
+      }
+    } catch (err) {
+      console.error("❌ Error in WebSocket message:", err);
+    }
   });
+});
+
 }
 
 // API endpoint that frontend calls to notify Unity to load a model
